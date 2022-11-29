@@ -43,7 +43,9 @@ const products = [
 
 //obtener array de productos
 routerProductos.get("/", (req, res) => {
-  res.render("products", { products });
+  products.length == 0
+  ? res.send("<h1>No hay productos</h1>")
+  : res.render("products", { products });
 });
 
 //agregar un nuevo producto
@@ -56,7 +58,7 @@ routerProductos.post("/", (req, res) => {
     id: products.length + 1,
   };
   products.push(obj);
-  res.render("products", { products });
+  res.status(201).redirect("/api/productos");
 });
 
 //consultar por un producto especifico del array
