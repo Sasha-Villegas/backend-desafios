@@ -28,7 +28,8 @@ app.get("/", (req, res) => {
  // );
 //establecemos el motor de la plantilla
 //app.set("view engine", "hbs");
-app.set("view engine", "ejs");
+//app.set("view engine", "ejs");
+app.set("view engine", "pug");
 // se establece donde se encuetran los archivos
 app.set("views", join(__dirname, "public/views"));
 app.listen(PORT, (error) => {

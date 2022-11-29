@@ -5,8 +5,8 @@ b-Una vista de los productos cargados (utilizando plantillas de handlebars) en l
 c-Ambas páginas contarán con un botón que redirija a la otra.
  */
 import { Router } from "express";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+// import { dirname, join } from "path";
+// import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const routerProductos = Router();
@@ -76,7 +76,7 @@ routerProductos.get("/:id", (req, res) => {
 // actualizar un producto del array
 routerProductos.put("/:id", (req, res) => {
   const { id } = req.params;
-  const { tittle, price, thumbnail } = req.body;
+  const { title, price, thumbnail } = req.body;
   const verify = products.some((e) => e.id === Number(id));
   let result;
   let status;
@@ -84,7 +84,7 @@ routerProductos.put("/:id", (req, res) => {
     result = products.find((e) => e.id == Number(id));
     const index = products.indexOf(result);
     result = {
-      tittle,
+      title,
       price,
       thumbnail,
       id: Number(id),
