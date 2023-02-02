@@ -1,125 +1,103 @@
-import express from 'express';
+import express, { json, urlencoded } from "express";
+import MongoStore from "connect-mongo";
+import session from "express-session";
 import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
-import path , { dirname, join } from "path";
+import { dirname, join } from "path";
+import router1 from "./routes/router1.js";
 import { engine } from "express-handlebars";
-import fs from "fs";
-import Contenedor from './api.js';
-import router  from "./public/routes/index.js";
+import { faker } from '@faker-js/faker';
+import Container from "./persistance.js";
 
+
+const chatMsgs = new Container("messages");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-//const pruduct   = [];
-//const messages = [];
+const mongoOptions = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  };
 
-const messageApi = new Contenedor(
-  {
-    client: "sqlite3",
-    connection: {
-      filename: path.resolve(__dirname, "./database/coderhouse.sqlite"),
-    },
-    useNullAsDefault: true,
-  },
-  "message"
-)
-
-const productApi = new Contenedor(
-  {
-    client: "mysql",
-    connection: {
-      host: "127.0.0.1",
-      user: "root",
-      password: "root",
-      database: "mydb",
-    },
-    pool: { min: 0, max: 7 },
-  },
-  "product"
-);
-
-app.engine(
-    "hbs",
-    engine({
-      extname: ".hbs",
-      defaultLayout: join(__dirname, "public/views/layouts/main.hbs"),
-      layoutsDir: join(__dirname, "public/views/layouts"),
-      partialsDir: join(__dirname, "public/views/partials"),
+app.use(
+    session({
+      secret: "coderhouse",
+      rolling: true,
+      resave: false,
+      saveUninitialized: false,
+      store: new MongoStore({
+        mongoUrl:
+          "mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority",
+        mongoOptions,
+      }),
+      cookie:{
+        maxAge: 600000
+      }
     })
   );
-  //establecemos el motor de la plantilla
-  app.set("view engine", "hbs");
-  // se establece donde se encuetran los archivos
-  app.set("views", join(__dirname, "public/views"));
-  app.use(express.static("public"));
 
-// esto lo deberia haber hecho con un router 
-/*app.get("/", (req, res) => {
-    res.render("form");
-    });*/
+app.use(express.static(__dirname + "/public"));
 
-app.use("/", router);    
+app.engine(
+    "hbs", 
+    engine({
+        extname: ".hbs",
+        defaultLayout: join(__dirname, "public/views/layouts/main.hbs"),
+        layoputsDir: join(__dirname, "public/views/layouts/"),
+        partialsDir: join(__dirname, "public/views/partials")
+    })
+);
 
-const espressServer = app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.set("view engine", "hbs");
+app.set("views", join(__dirname, "/public/views"))
+
+app.use(json());
+app.use(urlencoded({extended: true}));
+
+app.use("/", router1);
+
+const expressServer = app.listen(8000, () => {
+        console.log("listening on port 8000")
 });
 
+const io = new IOServer(expressServer);
 
+const fakerData = () => {
+    let products = [];
+    for (let i = 0; i<5; i++){
+        let tit = faker.commerce.productName();
+        let pri = faker.commerce.price();
+        let img = faker.image.image();
+        products.push({title: tit, price: pri, thumbnail: img});
+    };
+    return products;
+};
 
-const io = new IOServer(espressServer);
+io.on("connection", (socket) => {
+    console.log(`New connection, socket ID: ${socket.id}`);
 
-io.on("connection", async (socket) => {
-    // nueva conexion recibida
-    console.log("new connection", socket.id);
-    
-    socket.emit("server:product", await productApi.getAll());
-    
-    socket.on("new-product", async (data) => {
-      //console.log(data);
-      await productApi.save({...data});
-      io.emit("server:product", await productApi.getAll());
+    chatMsgs.getAll()
+        .then ((data) => socket.emit("server:message", data))
+
+    socket.emit("server:product", fakerData())
+
+    socket.on("client:message", (messageInfo) => {
+        chatMsgs.save(messageInfo)
+            .then(()=> chatMsgs.getAll()
+                    .then ((data) => io.emit("server:message", data))
+            )
+    });
+
+    socket.on("client:product", () => {
+        let products = fakerData()
+        io.emit("server:product", products)
+
     })
 
-  // borrar por id no esta funcionando aun 
-    socket.on("delete-product", async (id) => {
-      await productApi.deleteById(id);
-      io.emit("server:product", await productApi.getAll());
-    })
 
-    // borrar todos los productos
-    socket.on("delete-all", async () => {
-      await productApi.deleteAll();
-      io.emit("server:product", await productApi.getAll());
-    })
-
-   /* socket.on("new-product", (data) => { 
-        //console.log(data);
-        pruduct.push(data);
-        io.emit("server:product", pruduct);
-        
-    }
-   
-    );*/
-   
-    socket.emit("server:message", await messageApi.getAll());
-
-    socket.on("Client-message", async (msgInfo) => {
-      // console.log(msgInfo)
-      await messageApi.save({...msgInfo, time: new Date().toLocaleString()});
-      io.emit("server:message", await messageApi.getAll());
-    } );
-
-    /*socket.on("Client-message", (data) => {
-        //console.log(data);
-        messages.push(data);
-        io.emit("server:message", messages);
-        // guardar los mensajes en un txt 
-        fs.writeFileSync("./public/chats/messages.txt", JSON.stringify(messages));
-    })*/
-    
 });
+
+app.on("error", (err) => {console.log(err)});
