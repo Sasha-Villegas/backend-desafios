@@ -14,7 +14,7 @@ const compRate = document.querySelector("#compRate");
 
 
 const sendMessage = (messageInfo) => {
-    
+
     socket.emit("client:message", messageInfo);
 };
 

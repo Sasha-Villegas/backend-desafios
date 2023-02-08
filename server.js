@@ -1,10 +1,14 @@
 import express, { json, urlencoded } from "express";
+import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 import session from "express-session";
+import passport from "passport";
+import { passportStrategies } from "./lib/pasport.lib.js";
 import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import router1 from "./routes/router1.js";
+import { User } from "./models/user.model.js"
 import { engine } from "express-handlebars";
 import { faker } from '@faker-js/faker';
 import Container from "./persistance.js";
@@ -30,7 +34,7 @@ app.use(
       saveUninitialized: false,
       store: new MongoStore({
         mongoUrl:
-          "mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority",
+          "mongodb://localhost:27017/ecommerce",
         mongoOptions,
       }),
       cookie:{
@@ -38,6 +42,20 @@ app.use(
       }
     })
   );
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use("login", passportStrategies.loginStrategy);
+passport.use("register", passportStrategies.registerStrategy);
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {done(err, user)});
+});
 
 app.use(express.static(__dirname + "/public"));
 
@@ -59,8 +77,10 @@ app.use(urlencoded({extended: true}));
 
 app.use("/", router1);
 
-const expressServer = app.listen(8000, () => {
-        console.log("listening on port 8000")
+mongoose.set("strictQuery", true);
+await mongoose.connect("mongodb://localhost:27017/ecommerce");
+const expressServer = app.listen(3000, () => {
+        console.log("listening on port 3000")
 });
 
 const io = new IOServer(expressServer);
