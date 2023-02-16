@@ -2,13 +2,15 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+dotenv.config();
+
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "coder-backend-course.firebaseapp.com",
   projectId: "coder-backend-course",
   storageBucket: "coder-backend-course.appspot.com",
   messagingSenderId: "403334413486",
-  appId: "1:403334413486:web:43dcf931b7ab63be34aed3"
+  appId: "process.env.FIREBASE_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);

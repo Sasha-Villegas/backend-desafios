@@ -8,13 +8,18 @@ import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import router1 from "./routes/router1.js";
+import routerChild from "./routes/routerChild.js";
 import { User } from "./models/user.model.js"
 import { engine } from "express-handlebars";
 import { faker } from '@faker-js/faker';
 import Container from "./persistance.js";
+import parseArgs from "minimist";
+import dotenv from "dotenv";
 
 
 const chatMsgs = new Container("messages");
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,7 +33,7 @@ const mongoOptions = {
 
 app.use(
     session({
-      secret: "coderhouse",
+      secret: process.env.MONGO_SECRET,
       rolling: true,
       resave: false,
       saveUninitialized: false,
@@ -76,11 +81,26 @@ app.use(json());
 app.use(urlencoded({extended: true}));
 
 app.use("/", router1);
+app.use("/api", routerChild);
+
 
 mongoose.set("strictQuery", true);
 await mongoose.connect("mongodb://localhost:27017/ecommerce");
-const expressServer = app.listen(3000, () => {
-        console.log("listening on port 3000")
+
+const args = process.argv.slice(2);
+const options = {
+  alias: {
+    p: "port"
+  },
+  default:{
+    port: 8080
+  }
+};
+
+const minimistArgs = parseArgs(args, options);
+
+const expressServer = app.listen(minimistArgs.port, () => {
+        console.log(`listening on port ${minimistArgs.port}`)
 });
 
 const io = new IOServer(expressServer);
