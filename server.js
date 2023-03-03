@@ -1,5 +1,4 @@
 import express, { json, urlencoded } from "express";
-import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import passport from "passport";
@@ -7,8 +6,8 @@ import { passportStrategies } from "./lib/pasport.lib.js";
 import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import router1 from "./routes/router1.js";
-import routerChild from "./routes/routerChild.js";
+import router1  from "./public/routes/index.js";
+import  routerChild  from "./public/routes/indexChild.js";
 import { User } from "./models/user.model.js"
 import { engine } from "express-handlebars";
 import { faker } from '@faker-js/faker';
