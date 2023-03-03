@@ -6,6 +6,7 @@ import { passportStrategies } from "./lib/pasport.lib.js";
 import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import mongoose from "mongoose";
 import router1  from "./public/routes/index.js";
 import  routerChild  from "./public/routes/indexChild.js";
 import { User } from "./models/user.model.js"
