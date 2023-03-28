@@ -1,4 +1,5 @@
 import express, { json, urlencoded } from "express";
+import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import passport from "passport";
@@ -6,16 +7,15 @@ import { passportStrategies } from "./lib/pasport.lib.js";
 import { Server as IOServer } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import mongoose from "mongoose";
-import router1  from "./public/routes/index.js";
-import  routerChild  from "./public/routes/indexChild.js";
+import router1 from "./routes/router1.js";
 import { User } from "./models/user.model.js"
 import { engine } from "express-handlebars";
 import { faker } from '@faker-js/faker';
-import Container from "./persistance.js";
+import Container from "./persistance/persistance_chat.js";
 import parseArgs from "minimist";
 import dotenv from "dotenv";
-
+import cluster from "cluster";
+import os from "os";
 
 const chatMsgs = new Container("messages");
 
@@ -39,7 +39,7 @@ app.use(
       saveUninitialized: false,
       store: new MongoStore({
         mongoUrl:
-          "mongodb://localhost:27017/ecommerce",
+          "mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority",
         mongoOptions,
       }),
       cookie:{
@@ -81,63 +81,88 @@ app.use(json());
 app.use(urlencoded({extended: true}));
 
 app.use("/", router1);
-app.use("/api", routerChild);
-
 
 mongoose.set("strictQuery", true);
-await mongoose.connect("mongodb://localhost:27017/ecommerce");
+await mongoose.connect("mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority");
 
 const args = process.argv.slice(2);
 const options = {
   alias: {
-    p: "port"
+    p: "port",
+    m: "mode"
   },
   default:{
-    port: 8080
+    port: 8080,
+    mode: "fork"
   }
 };
 
+
 const minimistArgs = parseArgs(args, options);
 
-const expressServer = app.listen(minimistArgs.port, () => {
-        console.log(`listening on port ${minimistArgs.port}`)
-});
+const cpus = os.cpus();
 
-const io = new IOServer(expressServer);
+const startServer = () => {
+  const expressServer = app.listen(3000 || minimistArgs.port, () => {
+          console.log(`listening on port ${minimistArgs.port} and mode ${minimistArgs.mode}`)
+  });
+  
+  const io = new IOServer(expressServer);
+  
+  const fakerData = () => {
+      let products = [];
+      for (let i = 0; i<5; i++){
+          let tit = faker.commerce.productName();
+          let pri = faker.commerce.price();
+          let img = faker.image.image();
+          products.push({title: tit, price: pri, thumbnail: img});
+      };
+      return products;
+  };
+  
+  io.on("connection", (socket) => {
+      console.log(`New connection, socket ID: ${socket.id}`);
+  
+      chatMsgs.getAll()
+          .then ((data) => socket.emit("server:message", data))
+  
+      socket.emit("server:product", fakerData())
+  
+      socket.on("client:message", (messageInfo) => {
+          chatMsgs.save(messageInfo)
+              .then(()=> chatMsgs.getAll()
+                      .then ((data) => io.emit("server:message", data))
+              )
+      });
+  
+      socket.on("client:product", () => {
+          let products = fakerData()
+          io.emit("server:product", products)
+  
+      })
+  
+  
+  });
+  
+  app.on("error", (err) => {console.log(err)});
 
-const fakerData = () => {
-    let products = [];
-    for (let i = 0; i<5; i++){
-        let tit = faker.commerce.productName();
-        let pri = faker.commerce.price();
-        let img = faker.image.image();
-        products.push({title: tit, price: pri, thumbnail: img});
-    };
-    return products;
 };
 
-io.on("connection", (socket) => {
-    console.log(`New connection, socket ID: ${socket.id}`);
+if (minimistArgs.mode === "cluster") {
+  if (cluster.isPrimary){
 
-    chatMsgs.getAll()
-        .then ((data) => socket.emit("server:message", data))
+    cpus.map(()=> cluster.fork());
 
-    socket.emit("server:product", fakerData())
-
-    socket.on("client:message", (messageInfo) => {
-        chatMsgs.save(messageInfo)
-            .then(()=> chatMsgs.getAll()
-                    .then ((data) => io.emit("server:message", data))
-            )
-    });
-
-    socket.on("client:product", () => {
-        let products = fakerData()
-        io.emit("server:product", products)
-
+    cluster.on("exit", (worker)=>{
+      console.log(`Worker ${worker.process.pid} died`);
+      cluster.fork()
     })
-
-
-});
-
-app.on("error", (err) => {console.log(err)});
+  } else {
+    startServer();
+  }
+} else if (minimistArgs.mode === "fork"){
+  startServer();
+} else {
+  console.log(`${minimistArgs.mode} is not a valid mode. Please choose fork or cluster`)
+  process.exit(1)
+}

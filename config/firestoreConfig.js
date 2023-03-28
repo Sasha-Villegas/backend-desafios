@@ -10,8 +10,8 @@ const firebaseConfig = {
   authDomain: "coder-backend-course.firebaseapp.com",
   projectId: "coder-backend-course",
   storageBucket: "coder-backend-course.appspot.com",
-  messagingSenderId: "403334413486",
-  appId: "process.env.FIREBASE_APP_ID"
+  messagingSenderId: "403134413482",
+  appId: process.env.FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

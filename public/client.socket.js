@@ -14,14 +14,14 @@ const compRate = document.querySelector("#compRate");
 
 
 const sendMessage = (messageInfo) => {
-
+    
     socket.emit("client:message", messageInfo);
 };
 
 const renderMessage = (messagesData) => {
 
     const html = messagesData.map((messageInfo) => {
-    return `<div> <strong style="color:red">${messageInfo.author.id}</strong> <span style="color:orange">[${messageInfo.author.nombre}] : </span><span style="color:blue; font-style: italic">${messageInfo.text}</span> </div>`;
+    return `<div> <strong style="color:blue">${messageInfo.author.id}</strong> <span style="color:brown">[${messageInfo.author.nombre}] : </span><span style="color:green; font-style: italic">${messageInfo.text}</span> </div>`;
     });
 
     chatPool.innerHTML = html.join(" ");
