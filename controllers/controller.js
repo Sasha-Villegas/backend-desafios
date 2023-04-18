@@ -1,5 +1,5 @@
-import { sendMail, sendSMS } from "../services/services.js";
-import { getProducts, getDetailedCart, clearCart, addToCart } from "../persistance/persistance_ecom.js"
+
+import ProductFactory from "../persistance/factory_ecom.js"
 import { faker } from '@faker-js/faker';
 import os from "os";
 import logger from "../lib/log4js.js";
@@ -37,13 +37,15 @@ const isAuthenticated = (req, res, next) => {
 
 const getMain = async (req, res) => {
     logger.info(`${req.method} request from ${req.originalUrl} route`);
-    const prods = await getProducts();
+    const products = ProductFactory.createDAO("mongo");
+    const prods = await products.getProducts();
     res.render("inputForm", {username: req.user.username, address: req.user.address, pic: req.user.pic, name: req.user.name, age: req.user.age, phone: req.user.phone, products: prods})
 };
 
 const postMain = async (req, res) => {
     logger.info(`${req.method} request from ${req.originalUrl} route`);
-    const prods = await getProducts();
+    const products = ProductFactory.createDAO("mongo");
+    const prods = await products.getProducts();
     res.render("inputForm", {username: req.body.username, address: req.user.address, pic: req.user.pic, name: req.user.name, age: req.user.age, phone: req.user.phone, products: prods})
 };
 
@@ -83,7 +85,8 @@ const postAdd = async (req, res) => {
     const user = req.user.username
     logger.info(`${name} added to cart by user ${user}!`);
     try {
-        addToCart(user, name);
+        const products = ProductFactory.createDAO("mongo");
+        await products.addToCart(user, name);
         return res.status(201)
     }
     catch (err) {
@@ -93,8 +96,8 @@ const postAdd = async (req, res) => {
 
 const getCart = async (req, res) => {
     try{
-        const userCart = await getDetailedCart(req);
-        console.log(userCart);
+        const products = ProductFactory.createDAO("mongo");
+        const userCart = await products.getDetailedCart(req);
         res.render("cart", {userCart, hasAny:true})
     } catch (err){
         logger.error(`${err}`);
@@ -102,11 +105,12 @@ const getCart = async (req, res) => {
 };
 
 const postBuy = async (req, res) => {
-    const userCart = await getDetailedCart(req);
+    const products = ProductFactory.createDAO("mongo");
+    const userCart = await products.getDetailedCart(req);
     const userCartText = JSON.stringify(userCart);
     sendMail(req, "purchase", "New purchase", userCartText);
     sendSMS(req, "Order recieved and in process");
-    clearCart(req);
+    products.clearCart(req);
     res.redirect("/main");
 };
 
@@ -132,4 +136,4 @@ const unkownRoute = (req, res) => {
     res.status(404).send("Sorry this route does not exist")
 };
 
-export { getLogin, getRegister, postRegister, getRegisterFail, isAuthenticated, getMain, postMain, getLoginFail, getLogout, fakerData, postAdd, getCart, postBuy, getSysSpecs, unkownRoute };
+export const controller = { getLogin, getRegister, postRegister, getRegisterFail, isAuthenticated, getMain, postMain, getLoginFail, getLogout, fakerData, postAdd, getCart, postBuy, getSysSpecs, unkownRoute };
