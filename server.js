@@ -16,9 +16,6 @@ import parseArgs from "minimist";
 import dotenv from "dotenv";
 import cluster from "cluster";
 import os from "os";
-import { graphqlHTTP } from "express-graphql";
-import { controller } from "./controllers/controller.js";
-import prodSchema from "./graphql/product.schema.js"
 
 const chatMsgs = new Container("messages");
 
@@ -84,16 +81,6 @@ app.use(json());
 app.use(urlencoded({extended: true}));
 
 app.use("/", router1);
-
-app.use("/graphql",
-  graphqlHTTP({
-    prodSchema,
-    rootValue: {
-      getCart: controller.getCart,
-    },
-    graphiql: true,
-  })
-);
 
 mongoose.set("strictQuery", true);
 await mongoose.connect("mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority");

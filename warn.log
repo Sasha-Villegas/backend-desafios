@@ -47,9 +47,9 @@
 [2023-03-20T19:49:02.428] [ERROR] default - TypeError: Cannot read properties of null (reading 'products')
 [2023-03-20T19:49:07.021] [ERROR] default - TypeError: Cannot read properties of null (reading 'products')
 [2023-03-20T19:54:23.378] [WARN] default - RestException [Error]: Authenticate
-    at success (/Users/turco/WebDev/coderhouse-backend-course/node_modules/twilio/lib/base/Version.js:79:23)
+    at success (/Users/sasha/WebDev/coderhouse-backend-course/node_modules/twilio/lib/base/Version.js:79:23)
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-    at async sendSMS (file:///Users/turco/WebDev/coderhouse-backend-course/Desafio%20Clase%2036/routes/router1.js:86:25) {
+    at async sendSMS (file:///Users/sasha/WebDev/coderhouse-backend-course/Desafio%20Clase%2036/routes/router1.js:86:25) {
   status: 401,
   code: 20003,
   moreInfo: 'https://www.twilio.com/docs/errors/20003',
@@ -74,7 +74,3 @@
   details: undefined
 }
 [2023-03-25T01:58:36.267] [ERROR] default - TypeError: Cannot read properties of undefined (reading 'method')
-[2023-04-18T22:20:33.916] [WARN] default - GET request from /graphql route
-[2023-04-18T22:20:34.060] [WARN] default - GET request from /favicon.ico route
-[2023-04-18T22:21:01.310] [WARN] default - GET request from /graphql route
-[2023-04-18T22:21:05.407] [WARN] default - GET request from /graphiql route
