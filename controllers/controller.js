@@ -1,4 +1,4 @@
-
+import { sendMail, sendSMS } from "../services/services.js";
 import ProductFactory from "../persistance/factory_ecom.js"
 import { faker } from '@faker-js/faker';
 import os from "os";
@@ -136,4 +136,4 @@ const unkownRoute = (req, res) => {
     res.status(404).send("Sorry this route does not exist")
 };
 
-export const controller = { getLogin, getRegister, postRegister, getRegisterFail, isAuthenticated, getMain, postMain, getLoginFail, getLogout, fakerData, postAdd, getCart, postBuy, getSysSpecs, unkownRoute };
+export { getLogin, getRegister, postRegister, getRegisterFail, isAuthenticated, getMain, postMain, getLoginFail, getLogout, fakerData, postAdd, getCart, postBuy, getSysSpecs, unkownRoute };

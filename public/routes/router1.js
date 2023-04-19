@@ -1,38 +1,38 @@
 import { Router } from "express";
 import passport from "passport";
 import compression from "compression";
-import { controller } from "../controllers/controller.js";
+import { getLogin, getRegister, postRegister, getRegisterFail, isAuthenticated, getMain, postMain, getLoginFail, getLogout, fakerData, postAdd, getCart, postBuy, getSysSpecs, unkownRoute } from "../controllers/controller.js";
 
 const router = Router();
 
-router.get("/", controller.getLogin);
+router.get("/", getLogin);
 
 router
     .route("/register")
-    .get(controller.getRegister)
-    .post(passport.authenticate("register", {failureRedirect: "/registerFail"}), controller.postRegister);
+    .get(getRegister)
+    .post(passport.authenticate("register", {failureRedirect: "/registerFail"}), postRegister);
 
-router.get("/registerFail", controller.getRegisterFail);
+router.get("/registerFail", getRegisterFail);
 
 router
     .route("/main")
-    .get(controller.isAuthenticated, controller.getMain)
-    .post(passport.authenticate("login", {failureRedirect: "/loginFail"}), controller.postMain);
+    .get(isAuthenticated, getMain)
+    .post(passport.authenticate("login", {failureRedirect: "/loginFail"}), postMain);
 
-router.get("/loginFail", controller.getLoginFail);
+router.get("/loginFail", getLoginFail);
 
-router.get("/logout", controller.getLogout)
+router.get("/logout", getLogout)
 
-router.get("/api/productos-test", controller.isAuthenticated, controller.fakerData);
+router.get("/api/productos-test", isAuthenticated, fakerData);
 
-router.post("/add", controller.postAdd);
+router.post("/add", postAdd);
 
-router.get("/cart", controller.isAuthenticated, controller.getCart);
+router.get("/cart", isAuthenticated, getCart);
 
-router.post("/buy", controller.isAuthenticated, controller.postBuy);
+router.post("/buy", isAuthenticated, postBuy);
 
-router.get("/info", compression(), controller.getSysSpecs);
+router.get("/info", compression(), getSysSpecs);
 
-router.get("*", controller.unkownRoute);
+router.get("*", unkownRoute);
 
 export default router;

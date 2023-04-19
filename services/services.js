@@ -11,7 +11,7 @@ const sendMail = async (req, type = "newUser", subject = "New user registered", 
         }
     });
   
-    const adminMail = "sashavillegas@gmail.com";
+    const adminMail = "turcoturco95@gmail.com";
 
     let mailBody = "";
     switch (type) {
@@ -46,7 +46,7 @@ const sendSMS = async (req, message) => {
 
     const options = {
         body: message,
-        from: "+5492245474376",
+        from: "+15178365226",
         to: req.user.phone,
       };
       
@@ -57,4 +57,4 @@ const sendSMS = async (req, message) => {
       }
 };
 
-export { sendMail, sendSMS }
+export { sendMail, sendSMS };
