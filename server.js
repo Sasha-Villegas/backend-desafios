@@ -104,8 +104,8 @@ const minimistArgs = parseArgs(args, options);
 const cpus = os.cpus();
 
 const startServer = () => {
-  const expressServer = app.listen(3000 || minimistArgs.port, () => {
-          console.log(`listening on port ${process.env.PORT} and mode ${minimistArgs.mode}`)
+  const expressServer = app.listen(minimistArgs.port, () => {
+          console.log(`listening on port ${minimistArgs.port} and mode ${minimistArgs.mode}`)
   });
   
   const io = new IOServer(expressServer);
