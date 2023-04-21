@@ -11,14 +11,12 @@ import router1 from "./routes/router1.js";
 import { User } from "./models/user.model.js"
 import { engine } from "express-handlebars";
 import { faker } from '@faker-js/faker';
-import Container from "./persistance/persistance_chat.js";
+import Container from "./persistance.js";
 import parseArgs from "minimist";
 import dotenv from "dotenv";
 import cluster from "cluster";
 import os from "os";
-import { graphqlHTTP } from "express-graphql";
-import { controller } from "./controllers/controller.js";
-import prodSchema from "./graphql/product.schema.js"
+
 
 const chatMsgs = new Container("messages");
 
@@ -42,7 +40,7 @@ app.use(
       saveUninitialized: false,
       store: new MongoStore({
         mongoUrl:
-          "mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority",
+          "mongodb://localhost:27017/ecommerce",
         mongoOptions,
       }),
       cookie:{
@@ -85,18 +83,8 @@ app.use(urlencoded({extended: true}));
 
 app.use("/", router1);
 
-app.use("/graphql",
-  graphqlHTTP({
-    prodSchema,
-    rootValue: {
-      getCart: controller.getCart,
-    },
-    graphiql: true,
-  })
-);
-
 mongoose.set("strictQuery", true);
-await mongoose.connect("mongodb+srv://coderTest:Coderhouse2023@cluster0.1o7bz31.mongodb.net/?retryWrites=true&w=majority");
+await mongoose.connect("mongodb://localhost:27017/ecommerce");
 
 const args = process.argv.slice(2);
 const options = {
@@ -117,7 +105,7 @@ const cpus = os.cpus();
 
 const startServer = () => {
   const expressServer = app.listen(3000 || minimistArgs.port, () => {
-          console.log(`listening on port ${minimistArgs.port} and mode ${minimistArgs.mode}`)
+          console.log(`listening on port ${process.env.PORT} and mode ${minimistArgs.mode}`)
   });
   
   const io = new IOServer(expressServer);
