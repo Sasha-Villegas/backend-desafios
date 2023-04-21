@@ -2,8 +2,6 @@ import { Router } from "express";
 import passport from "passport";
 import { faker } from '@faker-js/faker';
 import os from "os";
-import compression from "compression";
-import logger from "../lib/log4js.js"
 
 const router = Router();
 
@@ -32,35 +30,26 @@ const isAuthenticated = (req, res, next) => {
 router
     .route("/")
     .get((req, res) => {
-        logger.info(`${req.method} request from ${req.originalUrl} route`)
         res.render("login")
     });
 
 router
     .route("/register")
     .get((req, res) => {
-        logger.info(`${req.method} request from ${req.originalUrl} route`),
         res.render("register")
     })
     .post(
         passport.authenticate("register", {failureRedirect: "/registerFail"}),
-        (req, res) => {
-            logger.info(`${req.method} request from ${req.originalUrl} route`);
-            res.redirect("/")
-        }
+        (req, res) => res.redirect("/")
     );
 
-router.get("/registerFail", (req, res) => {
-    logger.info(`${req.method} request from ${req.originalUrl} route`);
-    res.render("registerError")
-});
+router.get("/registerFail", (req, res) => res.render("registerError"));
 
 router
     .route("/main")
     .post(
         passport.authenticate("login", {failureRedirect: "/loginFail"}),
         (req, res) => {
-            logger.info(`${req.method} request from ${req.originalUrl} route`);
             res.render("inputForm", {username: req.body.username})
         }
     );
@@ -69,7 +58,6 @@ router.get("/loginFail", (req, res) => res.render("loginError"));
 
 router.get("/logout", (req, res) => {
     req.logout(() => {
-        logger.info(`${req.method} request from ${req.originalUrl} route`);
         return res.render("logout")
     });
 })
@@ -77,17 +65,11 @@ router.get("/logout", (req, res) => {
 router
     .route("/api/productos-test")
     .get(isAuthenticated, (req, res) => {
-        logger.info(`${req.method} request from ${req.originalUrl} route`);
-        try{
-            let products = fakerData();
-            res.render("fakeProds", {products, hasAny:true})
-        } catch (err){
-            logger.error(`${err}`);
-        }
+        let products = fakerData();
+        res.render("fakeProds", {products, hasAny:true})
     });
 
-router.get("/info", compression(), (req, res) => {
-    logger.info(`${req.method} request from ${req.originalUrl} route`)
+router.get("/info", (req, res) => {
     let args = process.argv;
     let so = process.platform;
     let nodeVer = process.version;
@@ -96,13 +78,7 @@ router.get("/info", compression(), (req, res) => {
     let pId = process.pid;
     let folder = process.cwd();
     let cores = os.cpus().length;
-    console.log(args+so+nodeVer+rss+execPath+pId+folder+cores)
     res.render("info", {args, so, nodeVer, rss, execPath, pId, folder, cores})
 });
-
-router.get("*", (req, res) => {
-    logger.warn(`${req.method} request from ${req.originalUrl} route`);
-    res.status(404).send("Sorry this route does no exist")
-})
 
 export default router;
